@@ -1,0 +1,36 @@
+# Core FastAPI and web framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+
+# Database and ORM
+sqlalchemy>=2.0.0
+alembic>=1.12.0
+psycopg2-binary>=2.9.7
+asyncpg>=0.29.0
+
+# Validation and serialization
+pydantic>=2.4.0
+pydantic-settings>=2.0.0
+
+# Authentication and security
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+python-multipart>=0.0.6
+
+# Caching and messaging
+redis>=5.0.0
+boto3>=1.29.0
+
+# Logging and monitoring
+structlog>=23.2.0
+python-json-logger>=2.0.7
+
+# HTTP client and utilities
+httpx>=0.25.0
+email-validator>=2.1.0
+phonenumbers>=8.13.0
+
+# Search and text processing
+langdetect>=1.0.9
+fuzzywuzzy>=0.18.0
+python-levenshtein>=0.23.0

@@ -1,0 +1,97 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: catalog_management
+      POSTGRES_USER: catalog_user
+      POSTGRES_PASSWORD: catalog_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U catalog_user -d catalog_management"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching and rate limiting
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Catalog Management Service
+  catalog-service:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      # Database
+      DATABASE_URL: postgresql://catalog_user:catalog_password@postgres:5432/catalog_management
+      
+      # Redis
+      REDIS_URL: redis://redis:6379/0
+      
+      # Application
+      ENVIRONMENT: development
+      DEBUG: true
+      LOG_LEVEL: DEBUG
+      
+      # Security
+      JWT_SECRET_KEY: dev-jwt-secret-key-change-in-production
+      DISABLE_AUTH: true  # For local development
+      
+      # Event Publishing
+      EVENT_BUS_TYPE: mock
+      
+      # API Configuration
+      CORS_ORIGINS: '["http://localhost:3000", "http://localhost:8080"]'
+      
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./src:/app/src:ro
+      - ./migrations:/app/migrations:ro
+      - ./alembic.ini:/app/alembic.ini:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Database migrations (run once)
+  migrate:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://catalog_user:catalog_password@postgres:5432/catalog_management
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./migrations:/app/migrations:ro
+      - ./alembic.ini:/app/alembic.ini:ro
+    command: ["python", "-m", "alembic", "upgrade", "head"]
+    profiles:
+      - tools
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  default:
+    name: catalog-network
