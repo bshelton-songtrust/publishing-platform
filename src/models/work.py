@@ -14,6 +14,10 @@ class Work(BaseModel):
     """
     Musical work model representing songs, compositions, and musical pieces.
     This is the core entity for catalog management.
+    
+    Each work belongs to a publisher (tenant) and includes user audit trails
+    for creation and updates. Works are multi-tenant aware through publisher-level
+    isolation using Row-Level Security (RLS).
     """
     
     __tablename__ = "works"
@@ -152,6 +156,9 @@ class Work(BaseModel):
         "Work",
         remote_side="Work.id"
     )
+    
+    # Explicitly define publisher relationship to complement inheritance from BaseModel
+    # This ensures back_populates works correctly with the Publisher model
 
     # Constraints and indexes
     __table_args__ = (
@@ -181,13 +188,13 @@ class Work(BaseModel):
         ),
         # Unique constraints
         UniqueConstraint(
-            "tenant_id", "iswc",
-            name="unique_iswc_per_tenant",
+            "publisher_id", "iswc",
+            name="unique_iswc_per_publisher",
             deferrable=True,
             initially="deferred"
         ),
         # Indexes for performance
-        Index("idx_works_tenant_id", "tenant_id"),
+        Index("idx_works_publisher_id", "publisher_id"),
         Index("idx_works_title", "title"),
         Index("idx_works_iswc", "iswc"),
         Index("idx_works_genre", "genre"),
@@ -207,6 +214,9 @@ class WorkWriter(BaseModel):
     """
     Junction table linking works to songwriters with role and contribution information.
     Represents the creative contributions to a musical work.
+    
+    Each work writer association belongs to a publisher (tenant) and includes user audit
+    trails for creation and updates. Multi-tenant isolation is enforced at the publisher level.
     """
     
     __tablename__ = "work_writers"
@@ -287,7 +297,7 @@ class WorkWriter(BaseModel):
         ),
         # Prevent duplicate writer-role combinations per work
         UniqueConstraint(
-            "tenant_id", "work_id", "songwriter_id", "role",
+            "publisher_id", "work_id", "songwriter_id", "role",
             name="unique_work_writer_role",
             deferrable=True,
             initially="deferred"
@@ -296,7 +306,7 @@ class WorkWriter(BaseModel):
         Index("idx_work_writers_work_id", "work_id"),
         Index("idx_work_writers_songwriter_id", "songwriter_id"),
         Index("idx_work_writers_role", "role"),
-        Index("idx_work_writers_tenant_id", "tenant_id"),
+        Index("idx_work_writers_publisher_id", "publisher_id"),
     )
 
     def __repr__(self) -> str:

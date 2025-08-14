@@ -14,6 +14,10 @@ class Recording(BaseModel):
     """
     Sound recording model representing specific performances/recordings of musical works.
     Links to the underlying musical work composition.
+    
+    Each recording belongs to a publisher (tenant) and includes user audit trails
+    for creation and updates. Recordings are multi-tenant aware through publisher-level
+    isolation using Row-Level Security (RLS).
     """
     
     __tablename__ = "recordings"
@@ -186,6 +190,9 @@ class Recording(BaseModel):
         back_populates="recording",
         cascade="all, delete-orphan"
     )
+    
+    # Publisher relationship inherited from BaseModel
+    # This model participates in the back_populates relationship with Publisher
 
     # Constraints and indexes
     __table_args__ = (
@@ -219,13 +226,13 @@ class Recording(BaseModel):
         ),
         # Unique constraints
         UniqueConstraint(
-            "tenant_id", "isrc",
-            name="unique_isrc_per_tenant",
+            "publisher_id", "isrc",
+            name="unique_isrc_per_publisher",
             deferrable=True,
             initially="deferred"
         ),
         # Indexes for performance
-        Index("idx_recordings_tenant_id", "tenant_id"),
+        Index("idx_recordings_publisher_id", "publisher_id"),
         Index("idx_recordings_work_id", "work_id"),
         Index("idx_recordings_title", "title"),
         Index("idx_recordings_isrc", "isrc"),
@@ -245,6 +252,9 @@ class RecordingContributor(BaseModel):
     """
     Junction table linking recordings to contributors (performers, producers, etc.).
     Represents various roles in the creation of a sound recording.
+    
+    Each recording contributor association belongs to a publisher (tenant) and includes user 
+    audit trails for creation and updates. Multi-tenant isolation is enforced at the publisher level.
     """
     
     __tablename__ = "recording_contributors"
@@ -303,7 +313,7 @@ class RecordingContributor(BaseModel):
         ),
         # Prevent duplicate contributor-role combinations per recording
         UniqueConstraint(
-            "tenant_id", "recording_id", "contributor_name", "role", "instrument",
+            "publisher_id", "recording_id", "contributor_name", "role", "instrument",
             name="unique_recording_contributor_role",
             deferrable=True,
             initially="deferred"
@@ -312,7 +322,7 @@ class RecordingContributor(BaseModel):
         Index("idx_recording_contributors_recording_id", "recording_id"),
         Index("idx_recording_contributors_contributor_name", "contributor_name"),
         Index("idx_recording_contributors_role", "role"),
-        Index("idx_recording_contributors_tenant_id", "tenant_id"),
+        Index("idx_recording_contributors_publisher_id", "publisher_id"),
     )
 
     def __repr__(self) -> str:

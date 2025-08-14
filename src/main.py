@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 
-from src.api.routes import health, works, songwriters, recordings, search
+from src.api.routes import health, works, songwriters, recordings, search, publishers
 from src.core.database import get_database
 from src.core.settings import get_settings
 from src.middleware.auth import AuthenticationMiddleware
@@ -134,6 +134,7 @@ async def root():
 
 
 # Main API routes
+app.include_router(publishers.router, prefix="/api/v1/publishers", tags=["publishers"])
 app.include_router(works.router, prefix="/api/v1/works", tags=["works"])
 app.include_router(songwriters.router, prefix="/api/v1/songwriters", tags=["songwriters"])
 app.include_router(recordings.router, prefix="/api/v1/recordings", tags=["recordings"])

@@ -20,6 +20,23 @@ settings = get_settings()
 security = HTTPBearer(auto_error=False)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+# Import enhanced authentication for new functionality
+try:
+    from .enhanced_auth import (
+        EnhancedAuthenticationMiddleware,
+        get_current_user_id as enhanced_get_current_user_id,
+        get_current_publisher_id as enhanced_get_current_publisher_id,
+        get_current_permissions,
+        get_token_type,
+        require_permission,
+        require_publisher_access,
+        require_token_type
+    )
+    ENHANCED_AUTH_AVAILABLE = True
+except ImportError:
+    ENHANCED_AUTH_AVAILABLE = False
+    logger.warning("Enhanced authentication not available, falling back to basic auth")
+
 
 class AuthenticationMiddleware(BaseHTTPMiddleware):
     """

@@ -5,6 +5,7 @@ from .work import *
 from .songwriter import *
 from .recording import *
 from .search import *
+from .publisher import *
 
 __all__ = [
     # Base schemas
@@ -51,4 +52,32 @@ __all__ = [
     "SearchParams",
     "SearchResponse",
     "SearchFilters",
+    
+    # Publisher schemas
+    "PublisherAttributes",
+    "PublisherBrandingAttributes",
+    "PublisherBusinessAddressAttributes", 
+    "PublisherSettingsAttributes",
+    "PublisherRelationships",
+    "PublisherResource",
+    "PublisherCreateRequest",
+    "PublisherUpdateRequest",
+    "PublisherResponse",
+    "PublisherCollectionResponse",
+    "PublisherSettingsRequest",
+    "PublisherSettingsResponse",
+    "PublisherBrandingRequest",
+    "PublisherBrandingResponse",
+    "PublisherUserAttributes",
+    "PublisherUserResource",
+    "PublisherUserInviteRequest",
+    "PublisherUserRoleUpdateRequest",
+    "PublisherUserCollectionResponse",
+    "PublisherAccountAttributes",
+    "PublisherAccountResource",
+    "PublisherAccountResponse",
+    "PublisherPlanChangeRequest",
+    "PublisherUsageStatsAttributes",
+    "PublisherUsageStatsResponse",
+    "PublisherSearchFilters",
 ]

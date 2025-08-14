@@ -13,6 +13,10 @@ class Songwriter(BaseModel):
     """
     Songwriter model representing music creators and writers.
     Contains personal and professional information for publishing purposes.
+    
+    Each songwriter belongs to a publisher (tenant) and includes user audit trails
+    for creation and updates. Songwriters are multi-tenant aware through publisher-level
+    isolation using Row-Level Security (RLS).
     """
     
     __tablename__ = "songwriters"
@@ -115,6 +119,9 @@ class Songwriter(BaseModel):
         TSVECTOR,
         comment="Full-text search vector"
     )
+    
+    # Publisher relationship inherited from BaseModel
+    # This model participates in the back_populates relationship with Publisher
 
     # Constraints and indexes
     __table_args__ = (
@@ -134,21 +141,21 @@ class Songwriter(BaseModel):
             "deceased_date IS NULL OR status = 'deceased'",
             name="deceased_date_requires_deceased_status"
         ),
-        # Unique constraints per tenant
+        # Unique constraints per publisher
         UniqueConstraint(
-            "tenant_id", "ipi",
-            name="unique_ipi_per_tenant",
+            "publisher_id", "ipi",
+            name="unique_ipi_per_publisher",
             deferrable=True,
             initially="deferred"
         ),
         UniqueConstraint(
-            "tenant_id", "email",
-            name="unique_email_per_tenant", 
+            "publisher_id", "email",
+            name="unique_email_per_publisher", 
             deferrable=True,
             initially="deferred"
         ),
         # Indexes for common queries
-        Index("idx_songwriters_tenant_id", "tenant_id"),
+        Index("idx_songwriters_publisher_id", "publisher_id"),
         Index("idx_songwriters_full_name", "full_name"),
         Index("idx_songwriters_stage_name", "stage_name"),
         Index("idx_songwriters_ipi", "ipi"),
